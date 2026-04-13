@@ -1,0 +1,13 @@
+{
+  "identifier": "default",
+  "description": "Default permissions for Blur-It",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "clipboard-manager:default",
+    "clipboard-manager:allow-read-image",
+    "clipboard-manager:allow-write-image",
+    "fs:default"
+  ]
+}
