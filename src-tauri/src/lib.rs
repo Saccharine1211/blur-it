@@ -27,6 +27,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::file::load_image_file,
             commands::file::save_image_file,
+            commands::clipboard::read_clipboard_file_path,
             commands::clipboard::read_clipboard_image,
             commands::clipboard::write_clipboard_image,
             commands::image::apply_effects,

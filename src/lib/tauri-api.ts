@@ -54,6 +54,10 @@ export async function saveImageFile(
   return invoke("save_image_file", { imageData, path });
 }
 
+export async function readClipboardFilePath(): Promise<string> {
+  return invoke<string>("read_clipboard_file_path");
+}
+
 export async function readClipboardImage(): Promise<string> {
   return invoke<string>("read_clipboard_image");
 }

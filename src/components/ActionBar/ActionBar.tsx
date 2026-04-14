@@ -1,8 +1,8 @@
 import { useAppStore } from "../../stores/appStore";
-import { openImageDialog, loadImageFile, saveImageDialog, applyAndSave, saveImageFile } from "../../lib/tauri-api";
+import { openImageDialog, loadImageFile, saveImageDialog, applyAndSave, saveImageFile, writeClipboardImage } from "../../lib/tauri-api";
 
 export function ActionBar() {
-  const displayImage = useAppStore((s) => s.displayImage);
+  const originalImageDataUrl = useAppStore((s) => s.originalImageDataUrl);
   const originalImagePath = useAppStore((s) => s.originalImagePath);
   const regions = useAppStore((s) => s.regions);
   const setImage = useAppStore((s) => s.setImage);
@@ -25,8 +25,8 @@ export function ActionBar() {
   };
 
   const handleSave = async () => {
-    if (!originalImagePath || regions.length === 0) {
-      showToast("저장할 이미지나 효과가 없습니다");
+    if (!originalImageDataUrl) {
+      showToast("저장할 이미지가 없습니다");
       return;
     }
     try {
@@ -37,15 +37,37 @@ export function ActionBar() {
       const format = savePath.toLowerCase().endsWith(".jpg") || savePath.toLowerCase().endsWith(".jpeg")
         ? "jpeg" : "png";
 
-      const regionData = regions.map((r) => ({
-        type: r.type,
-        effect: r.effect,
-        intensity: r.intensity,
-        bounds: r.bounds,
-        points: r.points,
-      }));
+      let imageBytes: number[];
 
-      const imageBytes = await applyAndSave(originalImagePath, regionData, format);
+      if (originalImagePath && regions.length > 0) {
+        // File-backed image with regions: use Rust backend for full-quality processing
+        const regionData = regions.map((r) => ({
+          type: r.type,
+          effect: r.effect,
+          intensity: r.intensity,
+          bounds: r.bounds,
+          points: r.points,
+        }));
+        imageBytes = await applyAndSave(originalImagePath, regionData, format);
+      } else {
+        // Paste/drop image (no originalImagePath) or no regions: export from canvas
+        const canvasEl = useAppStore.getState().canvasRef?.current;
+        if (!canvasEl) {
+          showToast("저장 실패: 캔버스를 찾을 수 없습니다");
+          return;
+        }
+        const mimeType = format === "jpeg" ? "image/jpeg" : "image/png";
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvasEl.toBlob(resolve, mimeType),
+        );
+        if (!blob) {
+          showToast("저장 실패: 이미지를 추출할 수 없습니다");
+          return;
+        }
+        const arrayBuffer = await blob.arrayBuffer();
+        imageBytes = Array.from(new Uint8Array(arrayBuffer));
+      }
+
       await saveImageFile(imageBytes, savePath);
       showToast("저장 완료!");
     } catch (e) {
@@ -56,7 +78,26 @@ export function ActionBar() {
   };
 
   const handleCopy = async () => {
-    showToast("클립보드 복사는 준비 중입니다");
+    try {
+      const canvasRef = useAppStore.getState().canvasRef;
+      const canvas = canvasRef?.current ?? document.querySelector("canvas");
+      if (!canvas) {
+        showToast("복사할 이미지가 없습니다");
+        return;
+      }
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        showToast("캔버스 컨텍스트를 가져올 수 없습니다");
+        return;
+      }
+      const { width, height } = canvas;
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const imageDataArray = Array.from(imageData.data);
+      await writeClipboardImage(imageDataArray, width, height);
+      showToast("클립보드에 복사했습니다");
+    } catch (e) {
+      showToast(`복사 실패: ${e}`);
+    }
   };
 
   return (
@@ -79,7 +120,7 @@ export function ActionBar() {
           Open
         </button>
 
-        {displayImage && (
+        {originalImageDataUrl && (
           <>
             <button
               onClick={handleSave}
@@ -99,7 +140,7 @@ export function ActionBar() {
         <div className="flex-1" />
         
         <div className="text-[11px] text-gray-400 font-medium tabular-nums">
-          {displayImage ? `${regions.length} regions` : "No image loaded"}
+          {originalImageDataUrl ? `${regions.length} regions` : "No image loaded"}
         </div>
       </div>
     </>

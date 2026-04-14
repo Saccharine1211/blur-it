@@ -15,7 +15,7 @@ export function applyEffectToCanvas(
   if (region.effect === "mosaic") {
     applyMosaic(ctx, db, region.intensity, region, displayScale);
   } else {
-    applyBlur(canvas, db, region.intensity);
+    applyBlur(canvas, db, region.intensity, region, displayScale);
   }
 }
 
@@ -62,6 +62,8 @@ function applyBlur(
   canvas: HTMLCanvasElement,
   db: Bounds,
   intensity: number,
+  region: Region,
+  displayScale: number,
 ): void {
   const radius = Math.max(1, Math.round((intensity / 100) * 15));
   const ix = Math.floor(db.x);
@@ -73,10 +75,9 @@ function applyBlur(
 
   const ctx = canvas.getContext("2d")!;
 
-  // Extract region, apply StackBlur, put back
+  // Extract region, apply StackBlur on temp canvas
   const imageData = ctx.getImageData(ix, iy, iw, ih);
 
-  // Create temporary canvas for StackBlur
   const tmpCanvas = document.createElement("canvas");
   tmpCanvas.width = iw;
   tmpCanvas.height = ih;
@@ -85,8 +86,11 @@ function applyBlur(
 
   StackBlur.canvasRGBA(tmpCanvas, 0, 0, iw, ih, radius);
 
-  const blurredData = tmpCtx.getImageData(0, 0, iw, ih);
-  ctx.putImageData(blurredData, ix, iy);
+  // Draw blurred result with clipping path (drawImage respects clip, putImageData does not)
+  ctx.save();
+  setClipPath(ctx, region, displayScale);
+  ctx.drawImage(tmpCanvas, ix, iy);
+  ctx.restore();
 }
 
 function setClipPath(

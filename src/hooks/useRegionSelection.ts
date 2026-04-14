@@ -1,8 +1,6 @@
 import { useState, useCallback, type RefObject } from "react";
 import { useAppStore } from "../stores/appStore";
 import { toImageCoord, computeFreehandBounds } from "../lib/regions";
-import { applyEffectToCanvas } from "../lib/effects";
-import { ApplyEffectCommand } from "../lib/commands";
 import type { Region, Point } from "../lib/regions";
 
 export function useRegionSelection(canvasRef: RefObject<HTMLCanvasElement | null>) {
@@ -16,7 +14,6 @@ export function useRegionSelection(canvasRef: RefObject<HTMLCanvasElement | null
   const intensity = useAppStore((s) => s.intensity);
   const displayScale = useAppStore((s) => s.displayScale);
   const addRegion = useAppStore((s) => s.addRegion);
-  const pushUndo = useAppStore((s) => s.pushUndo);
 
   const getCanvasCoord = useCallback(
     (e: React.MouseEvent): Point => {
@@ -104,21 +101,7 @@ export function useRegionSelection(canvasRef: RefObject<HTMLCanvasElement | null
         return;
       }
 
-      const canvas = canvasRef.current;
-      if (canvas) {
-        // Create undo command (captures region before effect)
-        const cmd = new ApplyEffectCommand(
-          canvas,
-          region.bounds,
-          displayScale,
-          `${region.effect} on ${region.type}`,
-          () => applyEffectToCanvas(canvas, region, displayScale),
-        );
-
-        cmd.execute();
-        pushUndo(cmd);
-        addRegion(region);
-      }
+      addRegion(region);
 
       setIsDrawing(false);
       setStartPoint(null);
@@ -132,9 +115,6 @@ export function useRegionSelection(canvasRef: RefObject<HTMLCanvasElement | null
       selectedTool,
       currentPoints,
       buildRegion,
-      canvasRef,
-      displayScale,
-      pushUndo,
       addRegion,
     ],
   );

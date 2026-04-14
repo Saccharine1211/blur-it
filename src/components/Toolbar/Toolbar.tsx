@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../stores/appStore";
 import type { RegionType, EffectType } from "../../lib/regions";
 
@@ -23,6 +24,17 @@ export function Toolbar() {
   const redo = useAppStore((s) => s.redo);
   const undoStack = useAppStore((s) => s.undoStack);
   const redoStack = useAppStore((s) => s.redoStack);
+
+  // Debounced intensity for smooth slider with batched canvas re-renders
+  const [localIntensity, setLocalIntensity] = useState(intensity);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => { setLocalIntensity(intensity); }, [intensity]);
+
+  const handleIntensityChange = (value: number) => {
+    setLocalIntensity(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setIntensity(value), 80);
+  };
 
   return (
     <div className="flex items-center gap-4 px-4 h-11 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm z-50">
@@ -73,11 +85,11 @@ export function Toolbar() {
             type="range"
             min={1}
             max={100}
-            value={intensity}
-            onChange={(e) => setIntensity(Number(e.target.value))}
+            value={localIntensity}
+            onChange={(e) => handleIntensityChange(Number(e.target.value))}
             className="w-32"
           />
-          <span className="text-[11px] font-medium text-gray-500 w-6 text-right tabular-nums">{intensity}</span>
+          <span className="text-[11px] font-medium text-gray-500 w-6 text-right tabular-nums">{localIntensity}</span>
         </div>
       </div>
 
