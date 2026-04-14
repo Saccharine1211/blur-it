@@ -1,10 +1,10 @@
 import { useAppStore } from "../../stores/appStore";
 import type { RegionType, EffectType } from "../../lib/regions";
 
-const tools: { key: RegionType; label: string }[] = [
-  { key: "rectangle", label: "Rectangle" },
-  { key: "ellipse", label: "Ellipse" },
-  { key: "freehand", label: "Freehand" },
+const tools: { key: RegionType; label: string; icon: string }[] = [
+  { key: "rectangle", label: "Rect", icon: "▢" },
+  { key: "ellipse", label: "Oval", icon: "◯" },
+  { key: "freehand", label: "Free", icon: "✍" },
 ];
 
 const effects: { key: EffectType; label: string }[] = [
@@ -25,36 +25,37 @@ export function Toolbar() {
   const redoStack = useAppStore((s) => s.redoStack);
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-neutral-900 border-b border-neutral-700">
-      {/* Selection tools */}
-      <div className="flex gap-1">
+    <div className="flex items-center gap-4 px-4 h-11 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm z-50">
+      {/* Selection tools (Segmented Control) */}
+      <div className="flex p-0.5 bg-gray-200/50 rounded-lg">
         {tools.map((t) => (
           <button
             key={t.key}
             onClick={() => setSelectedTool(t.key)}
-            className={`px-3 py-1.5 text-sm rounded transition-colors ${
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
               selectedTool === t.key
-                ? "bg-blue-600 text-white"
-                : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
+            <span className="mr-1">{t.icon}</span>
             {t.label}
           </button>
         ))}
       </div>
 
-      <div className="w-px h-6 bg-neutral-600" />
+      <div className="w-px h-6 bg-gray-200" />
 
-      {/* Effect selector */}
-      <div className="flex gap-1">
+      {/* Effect selector (Segmented Control) */}
+      <div className="flex p-0.5 bg-gray-200/50 rounded-lg">
         {effects.map((e) => (
           <button
             key={e.key}
             onClick={() => setSelectedEffect(e.key)}
-            className={`px-3 py-1.5 text-sm rounded transition-colors ${
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
               selectedEffect === e.key
-                ? "bg-purple-600 text-white"
-                : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {e.label}
@@ -62,41 +63,49 @@ export function Toolbar() {
         ))}
       </div>
 
-      <div className="w-px h-6 bg-neutral-600" />
+      <div className="w-px h-6 bg-gray-200" />
 
       {/* Intensity slider */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-neutral-400">Intensity</span>
-        <input
-          type="range"
-          min={1}
-          max={100}
-          value={intensity}
-          onChange={(e) => setIntensity(Number(e.target.value))}
-          className="w-24 accent-purple-500"
-        />
-        <span className="text-xs text-neutral-300 w-7 text-right">{intensity}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-tight">Intensity</span>
+        <div className="flex items-center gap-2">
+          <input
+            type="range"
+            min={1}
+            max={100}
+            value={intensity}
+            onChange={(e) => setIntensity(Number(e.target.value))}
+            className="w-32"
+          />
+          <span className="text-[11px] font-medium text-gray-500 w-6 text-right tabular-nums">{intensity}</span>
+        </div>
       </div>
 
       <div className="flex-1" />
 
       {/* Undo/Redo */}
-      <div className="flex gap-1">
+      <div className="flex items-center gap-1">
         <button
           onClick={undo}
           disabled={undoStack.length === 0}
-          className="px-2 py-1.5 text-sm rounded bg-neutral-700 text-neutral-300 hover:bg-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Undo (Ctrl+Z)"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          title="Undo (⌘Z)"
         >
-          Undo
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.5 5.5L1.5 8.5L4.5 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M1.5 8.5H8.5C11.2614 8.5 13.5 10.7386 13.5 13.5V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
         <button
           onClick={redo}
           disabled={redoStack.length === 0}
-          className="px-2 py-1.5 text-sm rounded bg-neutral-700 text-neutral-300 hover:bg-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Redo (Ctrl+Shift+Z)"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          title="Redo (⇧⌘Z)"
         >
-          Redo
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5 5.5L14.5 8.5L11.5 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M14.5 8.5H7.5C4.73858 8.5 2.5 10.7386 2.5 13.5V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       </div>
     </div>

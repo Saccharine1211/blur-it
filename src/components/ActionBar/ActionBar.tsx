@@ -60,37 +60,48 @@ export function ActionBar() {
   };
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border-t border-neutral-700">
-      <button
-        onClick={handleOpen}
-        className="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
-      >
-        Open
-      </button>
-
-      {displayImage && (
-        <>
-          <button
-            onClick={handleSave}
-            className="px-4 py-1.5 text-sm rounded bg-green-600 text-white hover:bg-green-500 transition-colors"
-          >
-            Save
-          </button>
-          <button
-            onClick={handleCopy}
-            className="px-4 py-1.5 text-sm rounded bg-neutral-600 text-white hover:bg-neutral-500 transition-colors"
-          >
-            Copy
-          </button>
-        </>
-      )}
-
-      <div className="flex-1" />
-
-      {/* Toast notification */}
+    <>
+      {/* Toast Notification (macOS style) */}
       {toastMessage && (
-        <span className="text-sm text-yellow-300 animate-pulse">{toastMessage}</span>
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-2xl border border-gray-200/50 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-[13px] font-medium text-gray-800">{toastMessage}</span>
+          </div>
+        </div>
       )}
-    </div>
+
+      <div className="flex items-center gap-2 px-4 h-10 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-1px_3px_rgba(0,0,0,0.02)]">
+        <button
+          onClick={handleOpen}
+          className="px-3 py-1 text-[13px] font-medium rounded-full bg-gray-200/80 text-gray-800 hover:bg-gray-300 transition-all active:scale-95"
+        >
+          Open
+        </button>
+
+        {displayImage && (
+          <>
+            <button
+              onClick={handleSave}
+              className="px-3 py-1 text-[13px] font-medium rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed] shadow-sm transition-all active:scale-95"
+            >
+              Save Image
+            </button>
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1 text-[13px] font-medium rounded-full bg-gray-200/80 text-gray-800 hover:bg-gray-300 transition-all active:scale-95"
+            >
+              Copy
+            </button>
+          </>
+        )}
+
+        <div className="flex-1" />
+        
+        <div className="text-[11px] text-gray-400 font-medium tabular-nums">
+          {displayImage ? `${regions.length} regions` : "No image loaded"}
+        </div>
+      </div>
+    </>
   );
 }

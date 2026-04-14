@@ -10,12 +10,23 @@ function App() {
   const displayImage = useAppStore((s) => s.displayImage);
 
   return (
-    <div className="flex flex-col h-screen bg-neutral-900 text-white select-none">
-      <Toolbar />
-      <main className="flex-1 overflow-hidden flex items-center justify-center bg-neutral-800">
-        {displayImage ? <ImageCanvas /> : <EmptyState />}
+    <div className="flex flex-col h-screen bg-[#f5f5f7] text-gray-900 select-none overflow-hidden">
+      {/* Top Bar with Drag Region */}
+      <header className="shrink-0" data-tauri-drag-region>
+        <Toolbar />
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-hidden flex items-center justify-center p-8">
+        <div className="w-full h-full max-w-6xl mx-auto flex items-center justify-center">
+          {displayImage ? <ImageCanvas /> : <EmptyState />}
+        </div>
       </main>
-      <ActionBar />
+
+      {/* Bottom Bar */}
+      <footer className="shrink-0">
+        <ActionBar />
+      </footer>
     </div>
   );
 }

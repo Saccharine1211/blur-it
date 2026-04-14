@@ -55,19 +55,43 @@ export function ImageCanvas() {
     // Preview is drawn via CSS overlay, not on the main canvas
   }, [previewRegion]);
 
+  const checkerboardStyle: React.CSSProperties = {
+    backgroundImage: `
+      linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+      linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+      linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)
+    `,
+    backgroundSize: "16px 16px",
+    backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+    backgroundColor: "#ffffff",
+  };
+
   return (
-    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center p-4">
-      <canvas
-        ref={canvasRef}
-        className="max-w-full max-h-full cursor-crosshair shadow-lg"
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-      />
-      {/* Preview overlay for region being drawn */}
-      {previewRegion && (
-        <PreviewOverlay region={previewRegion} scale={displayScale} canvasRef={canvasRef} />
-      )}
+    <div
+      ref={containerRef}
+      className="relative w-full h-full flex items-center justify-center p-8 bg-[#ececec] rounded-xl overflow-hidden"
+    >
+      <div className="relative">
+        <div className="shadow-2xl rounded-lg overflow-hidden">
+          <div style={checkerboardStyle} className="absolute inset-0" />
+          <canvas
+            ref={canvasRef}
+            className="relative max-w-full max-h-full cursor-crosshair block"
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+          />
+        </div>
+        {/* Preview overlay for region being drawn */}
+        {previewRegion && (
+          <PreviewOverlay
+            region={previewRegion}
+            scale={displayScale}
+            canvasRef={canvasRef}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -89,15 +113,34 @@ function PreviewOverlay({
 
   const style: React.CSSProperties = {
     position: "absolute",
-    left: rect.left - (canvas.parentElement?.getBoundingClientRect().left ?? 0) + db.x,
-    top: rect.top - (canvas.parentElement?.getBoundingClientRect().top ?? 0) + db.y,
+    left: db.x,
+    top: db.y,
     width: db.width,
     height: db.height,
-    border: "2px dashed rgba(59, 130, 246, 0.8)",
-    backgroundColor: "rgba(59, 130, 246, 0.15)",
+    border: "2px dashed #60a5fa",
+    backgroundColor: "rgba(0, 113, 227, 0.1)",
     pointerEvents: "none",
-    borderRadius: region.type === "ellipse" ? "50%" : 0,
+    borderRadius: region.type === "ellipse" ? "50%" : "2px",
+    zIndex: 10,
   };
 
-  return <div style={style} />;
+  const handleSize = 6;
+  const handleStyle: React.CSSProperties = {
+    position: "absolute",
+    width: handleSize,
+    height: handleSize,
+    backgroundColor: "#60a5fa",
+    borderRadius: "50%",
+    border: "1px solid white",
+  };
+
+  return (
+    <div style={style}>
+      {/* Corner Handles */}
+      <div style={{ ...handleStyle, left: -handleSize / 2, top: -handleSize / 2 }} />
+      <div style={{ ...handleStyle, right: -handleSize / 2, top: -handleSize / 2 }} />
+      <div style={{ ...handleStyle, left: -handleSize / 2, bottom: -handleSize / 2 }} />
+      <div style={{ ...handleStyle, right: -handleSize / 2, bottom: -handleSize / 2 }} />
+    </div>
+  );
 }
